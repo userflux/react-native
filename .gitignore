@@ -1,0 +1,247 @@
+# .gitignore
+# Dependencies
+node_modules/
+npm-debug.log
+yarn-error.log
+yarn.lock
+package-lock.json
+
+# Build outputs
+build/
+dist/
+lib/
+coverage/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Testing
+*.test.js
+*.spec.js
+__tests__/
+coverage/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+---
+
+# .npmignore
+# Keep source files, exclude unnecessary files from npm package
+node_modules/
+coverage/
+__tests__/
+.github/
+.vscode/
+.idea/
+*.log
+.DS_Store
+.env*
+example/
+docs/
+.eslintrc
+.prettierrc
+jest.config.js
+*.test.js
+*.spec.js
+
+---
+
+# .eslintrc.js
+module.exports = {
+  root: true,
+  extends: [
+    '@react-native-community',
+    'prettier'
+  ],
+  plugins: ['react', 'react-native'],
+  rules: {
+    'react-native/no-inline-styles': 'warn',
+    'no-unused-vars': 'warn',
+    'no-console': ['warn', { allow: ['info', 'warn', 'error'] }],
+  },
+};
+
+---
+
+# .prettierrc
+{
+  "singleQuote": true,
+  "trailingComma": "es5",
+  "tabWidth": 2,
+  "useTabs": true,
+  "semi": false,
+  "bracketSpacing": true,
+  "jsxBracketSameLine": false,
+  "arrowParens": "avoid",
+  "printWidth": 100
+}
+
+---
+
+# jest.config.js
+module.exports = {
+  preset: 'react-native',
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
+  testRegex: '(/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$',
+  transformIgnorePatterns: [
+    'node_modules/(?!(react-native|@react-native|@react-navigation|react-native-device-info|@react-native-async-storage|@react-native-community)/)',
+  ],
+  setupFiles: ['<rootDir>/jest.setup.js'],
+  coveragePathIgnorePatterns: ['/node_modules/', '/example/'],
+};
+
+---
+
+# jest.setup.js
+// Mock AsyncStorage
+jest.mock('@react-native-async-storage/async-storage', () =>
+  require('@react-native-async-storage/async-storage/jest/async-storage-mock')
+);
+
+// Mock NetInfo
+jest.mock('@react-native-community/netinfo', () => ({
+  addEventListener: jest.fn(() => jest.fn()),
+  fetch: jest.fn(() => Promise.resolve({ isConnected: true })),
+}));
+
+// Mock DeviceInfo
+jest.mock('react-native-device-info', () => ({
+  getModel: jest.fn(() => 'Mock Model'),
+  getBrand: jest.fn(() => Promise.resolve('Mock Brand')),
+  getDeviceType: jest.fn(() => 'Handset'),
+  getSystemName: jest.fn(() => Promise.resolve('Mock OS')),
+  getSystemVersion: jest.fn(() => Promise.resolve('1.0')),
+  getVersion: jest.fn(() => '1.0.0'),
+  getBuildNumber: jest.fn(() => '1'),
+  getBundleId: jest.fn(() => 'com.mock.app'),
+  isTablet: jest.fn(() => false),
+  hasNotch: jest.fn(() => false),
+  getUniqueId: jest.fn(() => Promise.resolve('mock-unique-id')),
+  isEmulator: jest.fn(() => Promise.resolve(false)),
+  getDeviceId: jest.fn(() => Promise.resolve('mock-device-id')),
+  getManufacturer: jest.fn(() => Promise.resolve('Mock Manufacturer')),
+  getTimezone: jest.fn(() => Promise.resolve('UTC')),
+  getLocale: jest.fn(() => Promise.resolve('en-US')),
+  getCountry: jest.fn(() => Promise.resolve('US')),
+  getCarrier: jest.fn(() => Promise.resolve('Mock Carrier')),
+  getTotalMemory: jest.fn(() => Promise.resolve(4000000000)),
+  getTotalDiskCapacity: jest.fn(() => Promise.resolve(64000000000)),
+}));
+
+---
+
+# Publishing Instructions (PUBLISH.md)
+
+## Publishing @userflux/react-native to NPM
+
+### Prerequisites
+1. NPM account with access to @userflux organization
+2. Node.js and npm installed
+3. All tests passing
+
+### Steps to Publish
+
+1. **Login to NPM**
+   ```bash
+   npm login
+   # Enter your username, password, and email
+   ```
+
+2. **Verify Organization Access**
+   ```bash
+   npm org ls @userflux
+   # Should show your username with appropriate permissions
+   ```
+
+3. **Run Tests**
+   ```bash
+   npm test
+   npm run lint
+   ```
+
+4. **Update Version**
+   ```bash
+   # For patch release (1.0.0 -> 1.0.1)
+   npm version patch
+
+   # For minor release (1.0.0 -> 1.1.0)
+   npm version minor
+
+   # For major release (1.0.0 -> 2.0.0)
+   npm version major
+   ```
+
+5. **Build and Verify Package**
+   ```bash
+   # Check what will be published
+   npm pack --dry-run
+   
+   # Review the file list to ensure only necessary files are included
+   ```
+
+6. **Publish to NPM**
+   ```bash
+   # For first-time publishing
+   npm publish --access public
+
+   # For updates
+   npm publish
+   ```
+
+7. **Tag the Release**
+   ```bash
+   git tag v1.0.0
+   git push origin v1.0.0
+   ```
+
+8. **Create GitHub Release**
+   - Go to GitHub repository
+   - Click "Releases" -> "Create a new release"
+   - Select the tag you just created
+   - Add release notes describing changes
+
+### Testing Installation
+
+After publishing, test the package installation:
+
+```bash
+# Create a test React Native project
+npx react-native init TestUserFlux
+cd TestUserFlux
+
+# Install the SDK
+npm install @userflux/react-native
+
+# Install peer dependencies
+npm install @react-native-async-storage/async-storage @react-native-community/netinfo react-native-device-info
+
+# iOS specific
+cd ios && pod install && cd ..
+
+# Run the app
+npx react-native run-ios
+# or
+npx react-native run-android
+```
+
+### Troubleshooting
+
+- **Permission Denied**: Ensure you're logged in and have publish access to @userflux org
+- **Version Already Exists**: Bump the version number before publishing
+- **Missing Files**: Check .npmignore to ensure important files aren't excluded
